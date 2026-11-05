@@ -1,0 +1,6 @@
+@pr8_trpo_HostAddress = http://localhost:5056
+
+GET {{pr8_trpo_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
