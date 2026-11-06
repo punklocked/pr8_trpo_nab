@@ -14,12 +14,12 @@ namespace pr8_trpo.Controllers
     [Route("api/v1/auth")]
     public class AuthController : ControllerBase
     {
-        private readonly TasksDbContext _context;
+        private readonly TasksDbContext _db;
         private readonly IPasswordHasher<User> _hasher;
         private readonly IConfiguration _configuration;
         public AuthController(TasksDbContext context, IConfiguration configuration, IPasswordHasher<User> hasher)
         {
-            _context = context;
+            _db = context;
             _configuration = configuration;
             _hasher = hasher;
         }
@@ -29,7 +29,7 @@ namespace pr8_trpo.Controllers
             var claims = new[]
             {
                 new Claim(ClaimTypes.Name, user.Login),
-                new Claim(ClaimTypes.Role, "Admin")
+                new Claim(ClaimTypes.Role, user.Role)
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
@@ -52,7 +52,7 @@ namespace pr8_trpo.Controllers
         [HttpPost("register")]
         public IActionResult Register(AuthRequest request)
         {
-            if (_context.Users.Any(u => u.Login == request.Login))
+            if (_db.Users.Any(u => u.Login == request.Login))
                 return Conflict("Логин уже существует");
 
             var user = new User
@@ -63,8 +63,8 @@ namespace pr8_trpo.Controllers
 
             user.PasswordHash = _hasher.HashPassword(user, request.Password);
 
-            _context.Users.Add(user);
-            _context.SaveChanges();
+            _db.Users.Add(user);
+            _db.SaveChanges();
 
             return Ok("Регистрация успешна");
         }
@@ -72,7 +72,7 @@ namespace pr8_trpo.Controllers
         [HttpPost("login")]
         public IActionResult Login(AuthRequest request)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Login == request.Login);
+            var user = _db.Users.FirstOrDefault(u => u.Login == request.Login);
 
             if (user == null)
                 return Unauthorized("Неверный логин/пароль");

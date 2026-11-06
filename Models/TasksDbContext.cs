@@ -27,7 +27,7 @@ public partial class TasksDbContext : DbContext
     {
         modelBuilder.Entity<Task>(entity =>
         {
-            entity.HasNoKey();
+            entity.HasKey(e => e.Id);
 
             entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.OwnerLogin).HasMaxLength(100);

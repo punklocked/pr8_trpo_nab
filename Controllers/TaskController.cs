@@ -10,11 +10,11 @@ namespace pr8_trpo.Controllers
     [Authorize]
     public class TaskController : ControllerBase
     {
-        private readonly TasksDbContext _context;
+        private readonly TasksDbContext _db;
 
         public TaskController(TasksDbContext context)
         {
-            _context = context;
+            _db = context;
         }
 
         public record CreateTaskRequest(string Title, string Description);
@@ -26,7 +26,7 @@ namespace pr8_trpo.Controllers
         {
             var login = User.Identity.Name;
 
-            var tasks = _context.Tasks
+            var tasks = _db.Tasks
                 .Where(t => t.OwnerLogin == login)
                 .ToList();
 
@@ -37,7 +37,7 @@ namespace pr8_trpo.Controllers
         [Authorize(Roles = "User,Admin")]
         public IActionResult GetTask(int id)
         {
-            var task = _context.Tasks.Find(id);
+            var task = _db.Tasks.Find(id);
 
             if (task == null)
                 return NotFound();
@@ -60,8 +60,8 @@ namespace pr8_trpo.Controllers
                 IsCompleted = false
             };
 
-            _context.Tasks.Add(task);
-            _context.SaveChanges();
+            _db.Tasks.Add(task);
+            _db.SaveChanges();
 
             return CreatedAtAction(nameof(GetTask), new { id = task.Id }, task);
         }
@@ -70,7 +70,7 @@ namespace pr8_trpo.Controllers
         [Authorize(Roles = "User,Admin")]
         public IActionResult UpdateTask(int id, UpdateTaskRequest request)
         {
-            var task = _context.Tasks.Find(id);
+            var task = _db.Tasks.Find(id);
 
             if (task == null)
                 return NotFound();
@@ -82,7 +82,7 @@ namespace pr8_trpo.Controllers
             task.Description = request.Description;
             task.IsCompleted = request.IsCompleted;
 
-            _context.SaveChanges();
+            _db.SaveChanges();
             return Ok(task);
         }
 
@@ -90,7 +90,7 @@ namespace pr8_trpo.Controllers
         [Authorize(Roles = "User,Admin")]
         public IActionResult DeleteTask(int id)
         {
-            var task = _context.Tasks.Find(id);
+            var task = _db.Tasks.Find(id);
 
             if (task == null)
                 return NotFound();
@@ -98,8 +98,8 @@ namespace pr8_trpo.Controllers
             if (!User.IsInRole("Admin") && task.OwnerLogin != User.Identity.Name)
                 return Forbid();
 
-            _context.Tasks.Remove(task);
-            _context.SaveChanges();
+            _db.Tasks.Remove(task);
+            _db.SaveChanges();
 
             return NoContent();
         }
@@ -108,7 +108,7 @@ namespace pr8_trpo.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult GetAllTasks()
         {
-            var tasks = _context.Tasks.ToList();
+            var tasks = _db.Tasks.ToList();
 
             return Ok(tasks);
         }
